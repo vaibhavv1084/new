@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Participant Room</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="microphone.js"></script>
+    <script src="main.js"></script>
+</head>
+<body>
+    <div id="participantInfo" style="display: none;">
+        <h2>Welcome to the Room!</h2>
+        <p>Click the button below to start speaking:</p>
+        <button id="startSpeakingButton" onclick="startSpeaking()">Start Speaking</button>
+    </div>
+    <script>
+        const socket = io();
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('roomId');
+
+        if (roomId) {
+            document.getElementById('participantInfo').style.display = 'block';
+        } else {
+            alert('Invalid room ID');
+        }
+
+        function startSpeaking() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    const audioContext = new AudioContext();
+                    const source = audioContext.createMediaStreamSource(stream);
+                    const processor = audioContext.createScriptProcessor(1024, 1, 1);
+
+                    source.connect(processor);
+                    processor.connect(audioContext.destination);
+
+                    processor.onaudioprocess = function(e) {
+                        // Send audio data to the server
+                        socket.emit('audioData', {
+                            roomId: roomId,
+                            audioData: e.inputBuffer.getChannelData(0)
+                        });
+                    };
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

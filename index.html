@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
+</head>
+<body>
+    <div id="roomCreation">
+        <button id="createRoomButton" onclick="createRoom()">Create Room</button>
+    </div>
+    <div id="roomInfo" style="display: none;">
+        <h2>Your Room is Ready!</h2>
+        <p>Share this QR code with participants to join the room:</p>
+        <img id="qrCode" src="" alt="QR Code">
+    </div>
+    <script>
+        const socket = io();
+
+        function createRoom() {
+            fetch('/room/create')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('roomCreation').style.display = 'none';
+                    document.getElementById('roomInfo').style.display = 'block';
+                    document.getElementById('qrCode').src = data.qrCode;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
